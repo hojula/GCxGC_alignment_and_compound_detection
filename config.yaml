@@ -1,0 +1,33 @@
+# config.yaml
+
+constants:
+  t1_shift: -500
+  system_number: 1
+  box_t1: 5
+  box_t2: 25
+
+calibration_compounds:
+  - Heptacosane
+  - Tetradecane, 1-chloro-
+  - 2,5-pyrrolidinedione, 3-decyl-
+  - 2,5-pyrrolidinedione, 3-dodecyl-
+  - 2,5-pyrrolidinedione, 3-tetradecyl-
+  - Squalene
+  - Cholesterol
+  - Hexadecanoic acid, dodecyl ester
+  - 9-Hexadecenoic acid, tetradecyl ester
+  - Hexadecanoic acid, tetradecyl ester
+  - 9-Hexadecenoic acid, hexadecyl ester
+  - Hexadecanoic acid, hexadecyl ester
+  - 9-Hexadecenoic acid, octadecyl ester
+  - Nonacosane
+  - 1-Dodecanol
+  - Dodecane, 1-chloro-
+  - Dodecanamide, N-allyl-
+  - 2,5-pyrrolidinedione, 3-hexadecyl-
+  - Fumaric acid, 2-dimethylaminoethyl heptyl ester
+  - Cholesta-3,5-diene (izomer 2)
+  - Cholesta-3,5-dien-7-one
+  - Cholesta-4,6-dien-3-one
+  - Cholest-4-en-3-one
+  - Hexadecanoic acid, octadecyl ester

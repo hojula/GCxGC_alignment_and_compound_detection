@@ -1,0 +1,15 @@
+# compounds.yaml
+
+- name: compound1
+  t1: 1
+  t2: 2
+  box_t1: 3
+  box_t2: 4
+- name: compound2
+  t1: 5
+  t2: 6
+  box_t1: 7
+  box_t2: 8
+
+
+

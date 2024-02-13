@@ -1,0 +1,146 @@
+#compounds_system1.yaml
+
+Heptacosane:
+  t1: 2304.450909090909
+  t2: 5.253890909090912
+  box_t1: 1
+  box_t2: 1
+
+Tetradecane, 1-chloro-:
+  t1: 1416.429090909091
+  t2: 3.126625454545454
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-decyl-:
+  t1: 1603.0181818181818
+  t2: 3.190763636363635
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-dodecyl-:
+  t1: 1815.090909090909
+  t2: 3.4249381818181823
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-tetradecyl-:
+  t1: 2010.8872727272728
+  t2: 3.6253018181818173
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-hexadecyl-:
+  t1: 2190.538181818182
+  t2: 3.830978181818186
+  box_t1: 1
+  box_t2: 1
+
+Squalene:
+  t1: 2400.6254545454544
+  t2: 5.531389090909088
+  box_t1: 1
+  box_t2: 1
+
+Cholesterol:
+  t1: 2775.5272727272727
+  t2: 3.931767272727271
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-3,5-dien-7-one:
+  t1: 2963.1272727272726
+  t2: 3.0736618181818134
+  box_t1: 1
+  box_t2: 1
+
+Cholest-4-en-3-one:
+  t1: 3061.018181818182
+  t2: 2.7302690909090876
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-4,6-dien-3-one:
+  t1: 3074.7636363636366
+  t2: 2.7958618181818164
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, dodecyl ester:
+  t1: 2632.4218181818183
+  t2: 3.8120509090909076
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, tetradecyl ester:
+  t1: 2750.6181818181817
+  t2: 4.037334545454543
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, tetradecyl ester:
+  t1: 2766.581818181818
+  t2: 4.057145454545453
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, hexadecyl ester:
+  t1: 2878.4727272727273
+  t2: 4.327560000000002
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, hexadecyl ester:
+  t1: 2892.3636363636365
+  t2: 4.341639999999998
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, octadecyl ester:
+  t1: 2999.2727272727275
+  t2: 4.70785454545454
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, octadecyl ester:
+  t1: 3011.2
+  t2: 4.732105454545453
+  box_t1: 1
+  box_t2: 1
+
+Nonacosane:
+  t1: 2457.175182481752
+  t2: 5.4307554744525595
+  box_t1: 1
+  box_t2: 1
+
+1-Dodecanol:
+  t1: 1201.4744525547446
+  t2: 2.6054233576642334
+  box_t1: 1
+  box_t2: 1
+
+Dodecane, 1-chloro-:
+  t1: 1163.197080291971
+  t2: 2.888368613138687
+  box_t1: 1
+  box_t2: 1
+
+Dodecanamide, N-allyl-:
+  t1: 1909.5182481751824
+  t2: 1.8771094890510955
+  box_t1: 1
+  box_t2: 1
+
+Fumaric acid, 2-dimethylaminoethyl heptyl ester:
+  t1: 2229.598540145985
+  t2: 1.956459854014597
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-3,5-diene (izomer 2):
+  t1: 2526.6788321167883
+  t2: 4.575788321167884
+  box_t1: 1
+  box_t2: 1
+
