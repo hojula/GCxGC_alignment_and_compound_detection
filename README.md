@@ -16,7 +16,9 @@ Necessary libraries:
 Arguments are as follows:
 * --config - name of the file with program configuration
 * --input_cdf - path to cdf that should be processed
-* --clear - call to clear tmp folder
+* --clear - call to clear tmp folder [yes/no]
+* --shift_method - determines method for alignment [avg/triangles] (default triangles)
+* --debug_calibration - shows calibrations compounds and triangles if used
 
 config.yaml options:
 * output_directory - directory where should be the output stored
