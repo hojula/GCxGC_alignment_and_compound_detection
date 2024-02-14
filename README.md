@@ -16,7 +16,7 @@ Necessary libraries:
 Arguments are as follows:
 * --config - name of the file with program configuration
 * --input_cdf - path to cdf that should be processed
-* --clear - 'yes' to clear tmp folder
+* --clear - call to clear tmp folder
 
 config.yaml options:
 * output_directory - directory where should be the output stored
