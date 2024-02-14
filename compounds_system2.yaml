@@ -1,0 +1,422 @@
+#compounds_system2.yaml
+
+Heptacosane:
+  t1: 2251.294117647059
+  t2: 6.124948529411766
+  box_t1: 1
+  box_t2: 1
+
+Nonacosane:
+  t1: 2403.3529411764707
+  t2: 6.357448529411764
+  box_t1: 1
+  box_t2: 1
+
+Dodecane, 1-chloro-:
+  t1: 1112.6617647058824
+  t2: 3.243286764705882
+  box_t1: 1
+  box_t2: 1
+
+1-Dodecanol:
+  t1: 1158.0
+  t2: 2.8548970588235285
+  box_t1: 1
+  box_t2: 1
+
+Ethanol, 2-(dodecyloxy)-:
+  t1: 1469.1176470588234
+  t2: 3.0089411764705893
+  box_t1: 1
+  box_t2: 1
+
+2-Hexyl-1-octanol:
+  t1: 1446.9264705882354
+  t2: 3.5170882352941173
+  box_t1: 1
+  box_t2: 1
+
+Tetradecane, 1-chloro-:
+  t1: 1361.9411764705883
+  t2: 3.5654852941176465
+  box_t1: 1
+  box_t2: 1
+
+1-Hexadecanol:
+  t1: 1613.2058823529412
+  t2: 3.552602941176469
+  box_t1: 1
+  box_t2: 1
+
+Methoxyacetic acid, dodecyl ester:
+  t1: 1629.8529411764705
+  t2: 2.67114705882353
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-decyl-:
+  t1: 1546.8235294117646
+  t2: 3.6554411764705885
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-dodecyl-:
+  t1: 1759.5294117647059
+  t2: 3.9392279411764726
+  box_t1: 1
+  box_t2: 1
+
+Diethylene glycol monododecyl ether:
+  t1: 1906.4705882352941
+  t2: 2.8706470588235327
+  box_t1: 1
+  box_t2: 1
+
+1-Octadecanol:
+  t1: 1817.5294117647059
+  t2: 3.8216985294117602
+  box_t1: 1
+  box_t2: 1
+
+Dodecanamide, N-allyl-:
+  t1: 1849.0
+  t2: 2.1122058823529417
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-tetradecyl-:
+  t1: 1954.3529411764705
+  t2: 4.187867647058818
+  box_t1: 1
+  box_t2: 1
+
+Tetradecanamide, N-allyl-:
+  t1: 2043.2941176470588
+  t2: 2.3083750000000007
+  box_t1: 1
+  box_t2: 1
+
+2,5-pyrrolidinedione, 3-hexadecyl-:
+  t1: 2133.529411764706
+  t2: 4.443500000000002
+  box_t1: 1
+  box_t2: 1
+
+Benzoic acid, tridecyl ester:
+  t1: 2091.705882352941
+  t2: 3.3457352941176444
+  box_t1: 1
+  box_t2: 1
+
+Fumaric acid, 2-dimethylaminoethyl heptyl ester:
+  t1: 2167.235294117647
+  t2: 2.211948529411766
+  box_t1: 1
+  box_t2: 1
+
+Squalene:
+  t1: 2344.1176470588234
+  t2: 6.498492647058828
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-3,5-diene (izomer 2):
+  t1: 2464.5882352941176
+  t2: 5.3180955882352885
+  box_t1: 1
+  box_t2: 1
+
+Neidentifikovane 297, nitro, homologicka rada 1:
+  t1: 2500.9411764705883
+  t2: 1.8174264705882341
+  box_t1: 1
+  box_t2: 1
+
+Neidentifikovane 325, nitro, homologicka rada 1:
+  t1: 2656.3823529411766
+  t2: 1.9891764705882338
+  box_t1: 1
+  box_t2: 1
+
+Cholesterol:
+  t1: 2709.176470588235
+  t2: 4.544242647058826
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, dodecyl ester:
+  t1: 2571.5882352941176
+  t2: 4.476382352941177
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, tetradecyl ester:
+  t1: 2689.323529411765
+  t2: 4.74953676470588
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, tetradecyl ester:
+  t1: 2707.1911764705883
+  t2: 4.752536764705881
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, hexadecyl ester:
+  t1: 2818.3676470588234
+  t2: 5.094463235294121
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, hexadecyl ester:
+  t1: 2831.1617647058824
+  t2: 5.12822058823529
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, octadecyl ester:
+  t1: 2938.8088235294117
+  t2: 5.565830882352942
+  box_t1: 1
+  box_t2: 1
+
+Hexacosane:
+  t1: 2171.051851851852
+  t2: 6.016244444444444
+  box_t1: 1
+  box_t2: 1
+
+Pentacosane:
+  t1: 2085.9555555555557
+  t2: 5.955422222222226
+  box_t1: 1
+  box_t2: 1
+
+Octacosane:
+  t1: 2328.740740740741
+  t2: 6.222340740740738
+  box_t1: 1
+  box_t2: 1
+
+1-Tetradecanol:
+  t1: 1393.4666666666667
+  t2: 3.2355703703703704
+  box_t1: 1
+  box_t2: 1
+
+1-Hexadecanamine, N,N-dimethyl-:
+  t1: 1551.9703703703703
+  t2: 4.748177777777774
+  box_t1: 1
+  box_t2: 1
+
+Benzoic acid, dodecyl ester:
+  t1: 1999.3185185185184
+  t2: 3.22960740740741
+  box_t1: 1
+  box_t2: 1
+
+Triethylene glycol monododecyl ether:
+  t1: 2170.9333333333334
+  t2: 2.9534074074074064
+  box_t1: 1
+  box_t2: 1
+
+Benzoic acid, tetradecyl ester:
+  t1: 2180.237037037037
+  t2: 3.464866666666665
+  box_t1: 1
+  box_t2: 1
+
+5,10-Diethoxy-2,3,7,8-tetrahydro-1H,6H-dipyrrolo[1,2-a:1',2'-d]pyrazine:
+  t1: 2065.866666666667
+  t2: 1.4614074074074075
+  box_t1: 1
+  box_t2: 1
+
+2-Propenoic acid, 3-(4-methoxyphenyl)-, 2-ethylhexyl ester (izomer 2):
+  t1: 2200.2074074074076
+  t2: 2.6168148148148123
+  box_t1: 1
+  box_t2: 1
+
+Octocrylene:
+  t1: 2567.6740740740743
+  t2: 2.4346148148148146
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-3,5-dien-7-one:
+  t1: 2893.3333333333335
+  t2: 3.5380666666666643
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-4,6-dien-3-one:
+  t1: 3001.3333333333335
+  t2: 3.2209851851851883
+  box_t1: 1
+  box_t2: 1
+
+Cholest-4-en-3-one:
+  t1: 2987.777777777778
+  t2: 3.139629629629626
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, octadecyl ester:
+  t1: 2950.296296296296
+  t2: 5.607081481481483
+  box_t1: 1
+  box_t2: 1
+
+Ethanol, 2-(tetradecyloxy)-:
+  t1: 1684.1194029850747
+  t2: 3.3111567164179077
+  box_t1: 1
+  box_t2: 1
+
+1-Decanol, 2-hexyl-:
+  t1: 1664.8507462686566
+  t2: 3.7972313432835807
+  box_t1: 1
+  box_t2: 1
+
+Methoxyacetic acid, tetradecyl ester:
+  t1: 1836.2388059701493
+  t2: 2.9079776119402996
+  box_t1: 1
+  box_t2: 1
+
+Fumaric acid, 2-dimethylaminoethyl nonyl ester:
+  t1: 2336.89552238806
+  t2: 2.4166641791044756
+  box_t1: 1
+  box_t2: 1
+
+Fumaric acid, 2-dimethylaminoethyl undecyl ester:
+  t1: 2495.4626865671644
+  t2: 2.62533582089552
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, eicosyl ester:
+  t1: 3052.776119402985
+  t2: 6.199037313432835
+  box_t1: 1
+  box_t2: 1
+
+Isopropyl myristate:
+  t1: 1586.1052631578948
+  t2: 3.155669172932331
+  box_t1: 1
+  box_t2: 1
+
+2-Propenoic acid, 3-(4-methoxyphenyl)-, 2-ethylhexyl ester (izomer 1):
+  t1: 2015.6691729323309
+  t2: 2.7849774436090216
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanamide, N-allyl-:
+  t1: 2221.8646616541355
+  t2: 2.5059999999999985
+  box_t1: 1
+  box_t2: 1
+
+Octadecanamide, N-allyl-:
+  t1: 2386.6766917293235
+  t2: 2.7195338345864646
+  box_t1: 1
+  box_t2: 1
+
+alpha-Tocopheryl acetate:
+  t1: 2811.90977443609
+  t2: 3.8761879699248123
+  box_t1: 1
+  box_t2: 1
+
+9-Hexadecenoic acid, dodecyl ester:
+  t1: 2554.496240601504
+  t2: 4.458338345864661
+  box_t1: 1
+  box_t2: 1
+
+Cholesta-3,5-diene (izomer 1):
+  t1: 2355.030303030303
+  t2: 5.361401515151517
+  box_t1: 1
+  box_t2: 1
+
+Fumaric acid, 2-dimethylaminoethyl tridecyl ester:
+  t1: 2641.939393939394
+  t2: 2.856749999999998
+  box_t1: 1
+  box_t2: 1
+
+Benzoic acid, pentadecyl ester:
+  t1: 2266.412213740458
+  t2: 3.5723435114503825
+  box_t1: 1
+  box_t2: 1
+
+1-Dodecanamine, N,N-dimethyl-:
+  t1: 1102.3846153846155
+  t2: 3.9026153846153844
+  box_t1: 1
+  box_t2: 1
+
+Neidentifikovane 341, nitro, homologicka rada 2:
+  t1: 2695.846153846154
+  t2: 2.003423076923078
+  box_t1: 1
+  box_t2: 1
+
+1-Tetradecanamine, N,N-dimethyl-:
+  t1: 1335.171875
+  t2: 4.368734375000001
+  box_t1: 1
+  box_t2: 1
+
+Isopropyl palmitate:
+  t1: 1790.0625
+  t2: 3.4057421874999996
+  box_t1: 1
+  box_t2: 1
+
+Caffeine:
+  t1: 1877.1875
+  t2: 1.691500000000001
+  box_t1: 1
+  box_t2: 1
+
+Tetraethylene glycol monododecyl ether:
+  t1: 2411.5625
+  t2: 3.041265625
+  box_t1: 1
+  box_t2: 1
+
+Hexadecanoic acid, eicosyl ester:
+  t1: 3065.2881355932204
+  t2: 6.243601694915254
+  box_t1: 1
+  box_t2: 1
+
+Benzoic acid, 2-hydroxy-, phenylmethyl ester:
+  t1: 1736.2105263157894
+  t2: 2.5129605263157897
+  box_t1: 1
+  box_t2: 1
+
+Pentaethylene glycol monododecyl ether:
+  t1: 2628.625
+  t2: 3.1898750000000002
+  box_t1: 1
+  box_t2: 1
+
+Hexaethylene glycol monododecyl ether:
+  t1: 2781.3333333333335
+  t2: 3.468
+  box_t1: 1
+  box_t2: 1
+
