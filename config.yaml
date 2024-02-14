@@ -1,7 +1,7 @@
 # config.yaml
 
 constants:
-  output_directory: /home/hlavsja3/scent/vscht_scripts
+  output_directory: /scent
   output_file_name: out
   t1_shift: -500
   system_number: 2
