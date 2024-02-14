@@ -20,6 +20,7 @@ Arguments are as follows:
 
 config.yaml options:
 * output_directory - directory where should be the output stored
+* output_file_name - name of the output
 * t1_shift - offset of machine
 * system_number - '1/2/3'
 * box_t1 - length in each direction t1 to be added to the expected position to find calibration compound
