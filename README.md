@@ -32,6 +32,9 @@ config.yaml options:
 compounds_system1/2/3.yaml:
 * contains compounds and their expected position as well as small box where after shift the compound is being searched
 
+compounds_numbers.yaml:
+* contains compounds and their numbers in the outputted image
+
 avg_spectrum:
 * folder with spectrum saved in torch used for dot products
 
