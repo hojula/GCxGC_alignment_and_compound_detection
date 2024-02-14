@@ -11,6 +11,9 @@ from omegaconf import OmegaConf
 config = None
 name = None
 dev = 'cpu'
+args = None
+compounds_numbers = None
+numbers_compounds = {}
 
 system_number = 0
 y_six_seconds = 0
@@ -20,6 +23,8 @@ x_eight_seconds = 0
 y_ten_seconds = 0
 x_ten_seconds = 0
 t1_shift = 0
+
+triangles = []
 
 
 def set_system_1(scan_length: int):
@@ -365,8 +370,32 @@ def find_position_dot(BOX_SIZE_ADD_X, BOX_SIZE_ADD_Y, spectrogram_image, spectru
     return new_x_compound, new_y_compound
 
 
+def barycentric_coordinates(point, triangle, pixels):
+    '''
+    Calculate barycentric coordinates
+    :param point:  point for which we want to calculate barycentric coordinates
+    :param triangle:  triangle for which we want to calculate barycentric coordinates
+    :param pixels:  dictionary with pixels for each compound
+    :return:  barycentric coordinates
+    '''
+    global numbers_compounds
+    A = pixels[numbers_compounds[triangle[0]]]
+    B = pixels[numbers_compounds[triangle[1]]]
+    C = pixels[numbers_compounds[triangle[2]]]
+    denominator = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1])
+    if denominator == 0:
+        return (-1, -1, -1)
+    u = ((B[1] - C[1]) * (point[0] - C[0]) + (C[0] - B[0]) * (point[1] - C[1])) / denominator
+    v = ((C[1] - A[1]) * (point[0] - C[0]) + (A[0] - C[0]) * (point[1] - C[1])) / denominator
+    w = 1 - u - v
+    if 0 <= u <= 1 and 0 <= v <= 1 and 0 <= w <= 1:
+        return (u, v, w)
+    else:
+        return (-1, -1, -1)
+
+
 def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pixels: dict, avg_shift: tuple,
-                   spectrogram_image: torch.Tensor):
+                   spectrogram_image: torch.Tensor, shifts_for_compounds: dict = None):
     '''
     Find positions for each compound
     :param compounds_pixels: dictionary with compounds and their expected positions pixels
@@ -375,6 +404,7 @@ def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pi
     :param avg_shift: average shift for all significant compounds
     :return: dictionary with positions for each compound
     '''
+    global args, triangles, numbers_compounds
     result_dict = {}
     for compound in compounds_all:
         if (ref_compounds_pixels is not None) and (compound in ref_compounds_pixels):
@@ -385,8 +415,28 @@ def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pi
         else:
             x_compound = compounds_pixels[compound][0]
             y_compound = compounds_pixels[compound][1]
-            x_compound += avg_shift[0]
-            y_compound += avg_shift[1]
+            if args.shift_method == 'triangles':
+                found = False
+                for triangle in triangles:
+                    cord = barycentric_coordinates((x_compound, y_compound), triangle, ref_compounds_pixels)
+                    if cord[0] != -1:
+                        found = True
+                        shift_x = int(
+                            shifts_for_compounds[numbers_compounds[triangle[0]]][0] * cord[0] +
+                            shifts_for_compounds[numbers_compounds[triangle[1]]][0] *
+                            cord[1] + shifts_for_compounds[numbers_compounds[triangle[2]]][0] * cord[2])
+                        shift_y = int(
+                            shifts_for_compounds[numbers_compounds[triangle[0]]][1] * cord[0] +
+                            shifts_for_compounds[numbers_compounds[triangle[1]]][1] *
+                            cord[1] + shifts_for_compounds[numbers_compounds[triangle[2]]][1] * cord[2])
+                        x_compound += shift_x
+                        y_compound += shift_y
+                    if not found:
+                        x_compound += avg_shift[0]
+                        y_compound += avg_shift[1]
+            else:
+                x_compound += avg_shift[0]
+                y_compound += avg_shift[1]
         spectrum = torch.load(f'avg_spectrum/{compound}.pth').to(dev)
         x_compound, y_compound = find_position_dot(compounds_all[compound]['box_t1'], compounds_all[compound]['box_t2'],
                                                    spectrogram_image, spectrum, x_compound,
@@ -461,6 +511,7 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
     :param compounds_pixels:
     :return: None
     '''
+    global compounds_numbers
     original_height = viz.shape[1]
     original_width = viz.shape[2]
     if channel_order == 'CHW':
@@ -481,7 +532,6 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
     viz = result
     if not os.path.isdir(directory):
         os.makedirs(directory)
-    compounds_numbers = OmegaConf.load('compounds_numbers.yaml')
     with open(os.path.join(directory, filename.replace('.png', '.txt')), 'w') as f:
         if compounds_pixels is not None:
             for compound in compounds_pixels:
@@ -499,6 +549,21 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                 f.write("{:<8} {:<8} {:<8}\n".format(str(compound), str(x_time), str(y_time)))
         else:
             raise ValueError('Compounds pixels are not set')
+    if args.debug_calibration == 'yes':
+        for triangle in triangles:
+            v1 = numbers_compounds[triangle[0]]
+            v2 = numbers_compounds[triangle[1]]
+            v3 = numbers_compounds[triangle[2]]
+            x1 = compounds_pixels[v1][0] * 5 + 2
+            y1 = original_height - compounds_pixels[v1][1] - 1
+            x2 = compounds_pixels[v2][0] * 5 + 2
+            y2 = original_height - compounds_pixels[v2][1] - 1
+            x3 = compounds_pixels[v3][0] * 5 + 2
+            y3 = original_height - compounds_pixels[v3][1] - 1
+            viz = cv2.line(viz, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            viz = cv2.line(viz, (x2, y2), (x3, y3), (255, 0, 0), 2)
+            viz = cv2.line(viz, (x3, y3), (x1, y1), (255, 0, 0), 2)
+
     cv2.imwrite(os.path.join(directory, filename), viz[..., ::-1])
 
 
@@ -538,22 +603,48 @@ def visual_check_against_spectrogram(ds, spectrogram_image, directory=None,
                           directory=directory, filename=filename, compounds_pixels=compounds_pixels)
 
 
+def load_triangles():
+    '''
+    Load triangles from yaml file
+    :return: None - update global variable triangles
+    '''
+    global triangles, config
+    for i in config.triangles:
+        v1, v2, v3 = i.split(' ')
+        triangles.append((int(v1), int(v2), int(v3)))
+
+
+def make_numbers_compounds():
+    '''
+    Make dictionary with numbers and compounds
+    :return: None - update global variable numbers_compounds
+    '''
+    global numbers_compounds, compounds_numbers
+    for compound in compounds_numbers:
+        numbers_compounds[compounds_numbers[compound]] = compound
+
+
 def main():
-    global config, dev, system_number, t1_shift, x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds
+    global config, dev, system_number, t1_shift, x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, args, compounds_numbers, triangles
     dev = 'cpu'
     if torch.cuda.is_available():
         dev = 'cuda'
     print(dev)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, required=False)
-    parser.add_argument('--input_cdf', type=str, required=False)
-    parser.add_argument('--clear', type=str, required=False)
+    parser.add_argument('--config', type=str, required=True, default='config.yaml')
+    parser.add_argument('--input_cdf', type=str, required=True, default='input.cdf')
+    parser.add_argument('--clear', type=str, required=False, choices=['yes', 'no'], default='no')
+    parser.add_argument('--shift_method', type=str, required=False, choices=['avg,triangles'], default='triangles')
+    parser.add_argument('--debug_calibration', type=str, required=False, default='no', choices=['yes', 'no'])
     args = parser.parse_args()
-    if (args.clear is not None):
+    if (args.clear == 'yes'):
         os.system('rm -r tmp')
         exit(0)
     cdf_path = args.input_cdf
     config = OmegaConf.load(args.config)
+    compounds_numbers = OmegaConf.load('compounds_numbers.yaml')
+    make_numbers_compounds()
+    load_triangles()
     t1_shift = config.constants.t1_shift
     system_number = config.constants.system_number
     spectrogram_image, ds = load_cdf(cdf_path)
@@ -561,7 +652,10 @@ def main():
     compounds_pixels = from_times_pixels(compounds)
     avg_shift, calibration_compounds_pixels, shifts_for_compounds = find_shift(compounds_pixels, spectrogram_image)
     compounds_positions = find_positions(compounds_pixels, compounds, calibration_compounds_pixels, avg_shift,
-                                         spectrogram_image)
+                                         spectrogram_image, shifts_for_compounds)
+    if args.debug_calibration == 'yes':
+        # filter just calibration compounds
+        compounds_positions = filter_calibration_compounds(compounds_positions)
     visual_check_against_spectrogram(ds, spectrogram_image.cpu().numpy(),
                                      directory=config.constants.output_directory,
                                      filename=config.constants.output_file_name + '.png',
