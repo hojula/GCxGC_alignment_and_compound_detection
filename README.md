@@ -25,7 +25,7 @@ config.yaml options:
 * system_number - '1/2/3'
 * box_t1 - length in each direction t1 to be added to the expected position to find calibration compound
 * box_t2 - length in each direction t2 to be added to the expected position to find calibration compound
-* dot_product_threshold - the minimum value of the dot product at which the substance is declared to conform
+* dot_product_threshold - the minimum value of the dot product at which the substance is declared to conform (normalized dot product used -> [0,1])
 * m_z_index - plot only specific m/z index if -1 then the sum is plotted
 * calibration compounds - compounds used to find the shift
 
