@@ -9,6 +9,8 @@ import argparse
 from omegaconf import OmegaConf
 
 config = None
+name = None
+dev = 'cpu'
 
 system_number = 0
 y_six_seconds = 0
@@ -108,6 +110,14 @@ def load_cdf(cdf_path: str):
     if (os.path.exists(saved_file)):
         spectrogram_image = torch.load(saved_file)
         ds = torch.load(saved_file_raw)
+        if (config.constants.system_number == 1):
+            set_system_1(len(ds['total_intensity']))
+        elif (config.constants.system_number == 2):
+            set_system_2(len(ds['total_intensity']))
+        elif (config.constants.system_number == 3):
+            set_system_3(len(ds['total_intensity']))
+        else:
+            raise ValueError('Unknown system number')
     else:
         ds = nc.Dataset(cdf_path)
         data = {
@@ -120,6 +130,14 @@ def load_cdf(cdf_path: str):
             'mass_range_max': torch.tensor(ds['mass_range_max'][:], device=dev)
         }
         ds = data
+        if (config.constants.system_number == 1):
+            set_system_1(len(ds['total_intensity']))
+        elif (config.constants.system_number == 2):
+            set_system_2(len(ds['total_intensity']))
+        elif (config.constants.system_number == 3):
+            set_system_3(len(ds['total_intensity']))
+        else:
+            raise ValueError('Unknown system number')
         mass_range_min = 0
         mass_max_range_len = int(ds['mass_range_max'][:].max()) + 1
         spectrogram_image = torch.zeros((mass_max_range_len, y_ten_seconds,
@@ -145,18 +163,14 @@ def load_cdf(cdf_path: str):
             os.makedirs(cur_dir)
         torch.save(spectrogram_image, saved_file)
         torch.save(ds, saved_file_raw)
-    if (config.constants.system_number == 1):
-        set_system_1(len(ds['total_intensity']))
-    elif (config.constants.system_number == 2):
-        set_system_2(len(ds['total_intensity']))
-    elif (config.constants.system_number == 3):
-        set_system_3(len(ds['total_intensity']))
-    else:
-        raise ValueError('Unknown system number')
     return spectrogram_image, ds
 
 
 def load_ref_compounds():
+    '''
+    Load compounds and their signatures from yaml file
+    :return: dictionary with compounds and their signatures
+    '''
     global system_number
     if (system_number == 1):
         return OmegaConf.load('compounds_system1.yaml')
@@ -169,6 +183,12 @@ def load_ref_compounds():
 
 
 def from_pixels_times(t1_pixel, t2_pixel):
+    '''
+    Convert pixels to times
+    :param t1_pixel: pixel for t1
+    :param t2_pixel: pixel for t2
+    :return: tuple with times (t1, t2)
+    '''
     t2_time = t2_pixel * 5
     t2_time = t2_time / 1000
     t2_time = float(t2_time)
@@ -193,6 +213,11 @@ def from_pixels_times(t1_pixel, t2_pixel):
 
 
 def from_times_pixels(compounds: dict):
+    '''
+    Convert dictionary of compounds with times to pixels
+    :param compounds:  dictionary with compounds and their times
+    :return: dictionary with compounds and their pixels
+    '''
     global x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, system_number, t1_shift
     compounds_pixels = {}
     if system_number == 1:
@@ -304,6 +329,16 @@ def find_shift(compounds: dict, spectrogram_image: torch.Tensor):
 
 
 def find_position_dot(BOX_SIZE_ADD_X, BOX_SIZE_ADD_Y, spectrogram_image, spectrum, x_compound, y_compound):
+    '''
+    Find position in the box for compound using dot product
+    :param BOX_SIZE_ADD_X: length to add to x coordinate in each direction
+    :param BOX_SIZE_ADD_Y: length to add to y coordinate in each direction
+    :param spectrogram_image: spectrogram image (3D tensor)
+    :param spectrum: spectrum fof the compound
+    :param x_compound: expected x coordinate of the compound
+    :param y_compound: expected y coordinate of the compound
+    :return:
+    '''
     global config
     cut_spectrogram_image = spectrogram_image[:,
                             y_compound - BOX_SIZE_ADD_Y:y_compound + 1 + BOX_SIZE_ADD_Y,
@@ -330,7 +365,7 @@ def find_position_dot(BOX_SIZE_ADD_X, BOX_SIZE_ADD_Y, spectrogram_image, spectru
     return new_x_compound, new_y_compound
 
 
-def find_positions(compounds_pixels: dict, compounds_ref: dict, ref_compounds_pixels: dict, avg_shift: tuple,
+def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pixels: dict, avg_shift: tuple,
                    spectrogram_image: torch.Tensor):
     '''
     Find positions for each compound
@@ -341,7 +376,7 @@ def find_positions(compounds_pixels: dict, compounds_ref: dict, ref_compounds_pi
     :return: dictionary with positions for each compound
     '''
     result_dict = {}
-    for compound in compounds:
+    for compound in compounds_all:
         if (ref_compounds_pixels is not None) and (compound in ref_compounds_pixels):
             x_compound = ref_compounds_pixels[compound][0].item()
             y_compound = ref_compounds_pixels[compound][1].item()
@@ -353,7 +388,7 @@ def find_positions(compounds_pixels: dict, compounds_ref: dict, ref_compounds_pi
             x_compound += avg_shift[0]
             y_compound += avg_shift[1]
         spectrum = torch.load(f'avg_spectrum/{compound}.pth').to(dev)
-        x_compound, y_compound = find_position_dot(compounds_ref[compound]['box_t1'], compounds_ref[compound]['box_t2'],
+        x_compound, y_compound = find_position_dot(compounds_all[compound]['box_t1'], compounds_all[compound]['box_t2'],
                                                    spectrogram_image, spectrum, x_compound,
                                                    y_compound)
         if x_compound == -1 and y_compound == -1:
@@ -379,11 +414,26 @@ def filter_calibration_compounds(compounds: dict):
 
 
 def apply_color_map(grayscale_image):
+    '''
+    Apply color map to grayscale image
+    :param grayscale_image:
+    :return: colored image
+    '''
     cm = matplotlib.colormaps['viridis']
     return cm(grayscale_image)[..., :3] * 255
 
 
 def fill_image(image, ds, data_pointer, scan_beginning_index, scan_length, second_dimension_length):
+    '''
+    Fill image with data from cdf file
+    :param image: image which will be filled with data
+    :param ds: loaded cdf file
+    :param data_pointer: pointer to data in cdf file
+    :param scan_beginning_index: x coordinate where to start filling
+    :param scan_length: length of x coordinate
+    :param second_dimension_length: length of y coordinate
+    :return: updated data_pointer
+    '''
     for x in range(scan_beginning_index, scan_beginning_index + scan_length):
         image[:second_dimension_length, x] = ds['total_intensity'][
                                              data_pointer:data_pointer + second_dimension_length].cpu().numpy()
@@ -397,6 +447,20 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                           invert_color_channels: bool = False, channel_order: str = 'CHW',
                           max_value: float = 255.,
                           aspect: float = 1.0, marker_size: float = 0.05, compounds_pixels: dict = None):
+    '''
+    Plot image and store it
+    :param viz:
+    :param filename:
+    :param directory:
+    :param dpi:
+    :param invert_color_channels:
+    :param channel_order:
+    :param max_value:
+    :param aspect:
+    :param marker_size:
+    :param compounds_pixels:
+    :return: None
+    '''
     original_height = viz.shape[1]
     original_width = viz.shape[2]
     if channel_order == 'CHW':
@@ -438,8 +502,17 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
     cv2.imwrite(os.path.join(directory, filename), viz[..., ::-1])
 
 
-def visual_check_against_total_intensity(ds, spectrogram_image, directory=None,
-                                         filename=None, compounds_pixels=None):
+def visual_check_against_spectrogram(ds, spectrogram_image, directory=None,
+                                     filename=None, compounds_pixels=None):
+    '''
+    Visual check of the results against spectrogram
+    :param ds:
+    :param spectrogram_image:
+    :param directory:
+    :param filename:
+    :param compounds_pixels:
+    :return: None
+    '''
     global x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, config
     image = np.zeros((y_ten_seconds, x_six_seconds + x_eight_seconds + x_ten_seconds),
                      dtype=np.float32)
@@ -465,7 +538,8 @@ def visual_check_against_total_intensity(ds, spectrogram_image, directory=None,
                           directory=directory, filename=filename, compounds_pixels=compounds_pixels)
 
 
-if __name__ == '__main__':
+def main():
+    global config, dev, system_number, t1_shift, x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds
     dev = 'cpu'
     if torch.cuda.is_available():
         dev = 'cuda'
@@ -473,26 +547,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, required=False)
     parser.add_argument('--input_cdf', type=str, required=False)
-    parser.add_argument('--clean', type=str, required=False)
+    parser.add_argument('--clear', type=str, required=False)
     args = parser.parse_args()
-    if (args.clean is not None):
+    if (args.clear is not None):
         os.system('rm -r tmp')
         exit(0)
     cdf_path = args.input_cdf
-    name = cdf_path.split('/')[-1]
     config = OmegaConf.load(args.config)
-    # print(config)
     t1_shift = config.constants.t1_shift
     system_number = config.constants.system_number
     spectrogram_image, ds = load_cdf(cdf_path)
-    # current directory
-    dir = os.getcwd()
     compounds = load_ref_compounds()
     compounds_pixels = from_times_pixels(compounds)
-    calibration_compounds = filter_calibration_compounds(compounds_pixels)
     avg_shift, calibration_compounds_pixels, shifts_for_compounds = find_shift(compounds_pixels, spectrogram_image)
     compounds_positions = find_positions(compounds_pixels, compounds, calibration_compounds_pixels, avg_shift,
                                          spectrogram_image)
-    visual_check_against_total_intensity(ds, spectrogram_image.cpu().numpy(),
-                                         directory=config.constants.output_directory,
-                                         filename='out.png', compounds_pixels=compounds_positions)
+    visual_check_against_spectrogram(ds, spectrogram_image.cpu().numpy(),
+                                     directory=config.constants.output_directory,
+                                     filename=config.constants.output_file_name + '.png',
+                                     compounds_pixels=compounds_positions)
+
+
+if __name__ == '__main__':
+    main()

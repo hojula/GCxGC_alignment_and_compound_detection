@@ -2,8 +2,9 @@
 
 constants:
   output_directory: /home/hlavsja3/scent/vscht_scripts
+  output_file_name: out
   t1_shift: -500
-  system_number: 1
+  system_number: 2
   box_t1: 5
   box_t2: 25
   dot_product_threshold: 0.8
