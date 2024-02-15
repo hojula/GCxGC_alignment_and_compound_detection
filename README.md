@@ -11,6 +11,7 @@ Necessary libraries:
 * matplotlib
 * argparse
 * OmegaConf
+* faiss
   
 
 Arguments are as follows:
