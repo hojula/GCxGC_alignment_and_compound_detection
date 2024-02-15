@@ -5,7 +5,7 @@ constants:
   output_file_name: out
   t1_shift: -500
   system_number: 2
-  box_t1: 5
+  box_t1: 2
   box_t2: 25
   dot_product_threshold: 0.8
   m_z_index: -1
