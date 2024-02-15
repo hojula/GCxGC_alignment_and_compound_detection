@@ -7,6 +7,8 @@ import cv2
 import matplotlib
 import argparse
 from omegaconf import OmegaConf
+import ood_mahalanobis
+import matplotlib.pyplot as plt
 
 config = None
 name = None
@@ -402,10 +404,10 @@ def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pi
     :param compounds: dictionary with compounds and their specifications
     :param ref_compounds_pixels: dictionary with reference pixels for each significant compound
     :param avg_shift: average shift for all significant compounds
-    :return: dictionary with positions for each compound
+    :return: dictionary with positions for each compound and spectrum for each compound
     '''
     global args, triangles, numbers_compounds
-    result_dict = {}
+    compounds_position = {}
     for compound in compounds_all:
         if (ref_compounds_pixels is not None) and (compound in ref_compounds_pixels):
             x_compound = ref_compounds_pixels[compound][0].item()
@@ -445,8 +447,9 @@ def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pi
             continue
         x_compound = int(x_compound)
         y_compound = int(y_compound)
-        result_dict[compound] = (x_compound, y_compound)
-    return result_dict
+        spectrum_found = spectrogram_image[:, y_compound, x_compound].clone()
+        compounds_position[compound] = (x_compound, y_compound, spectrum_found)
+    return compounds_position
 
 
 def filter_calibration_compounds(compounds: dict):
@@ -492,11 +495,56 @@ def fill_image(image, ds, data_pointer, scan_beginning_index, scan_length, secon
     return data_pointer
 
 
+def write_spectrum_to_file(spectrum, f):
+    '''
+    Write spectrum to file
+    :param spectrum: spectrum which will be written to file
+    :param f: opened file
+    :return: None
+    '''
+    for i in range(len(spectrum)):
+        if i == 0:
+            continue
+        f.write(f'{i}:{spectrum[i]} ')
+    f.write('\n')
+
+
+def create_spectrum_graph(dpi, spectrum, title):
+    '''
+    Create spectrum graph and store it to opened file
+    :param dpi: dpi of the graph
+    :param spectrum: spectrum which will be plotted
+    :param title: title of the graph
+    :return: None
+    '''
+    global args
+    spectrum_values = spectrum[:].cpu().numpy()
+    # Create the plot
+    plt.figure(figsize=((13, 7)))
+    plt.subplots_adjust(left=0.15, right=0.85, top=0.85, bottom=0.15)
+    indices = torch.arange(len(spectrum_values))
+    plt.plot(indices, spectrum_values, marker='', linestyle='-', color='r', label='Spectrum',
+             linewidth=1)
+    plt.xlabel('m/z')
+    plt.ylabel('Intensity')
+    plt.title(title)
+    plt.grid(True)
+    cdf_file = args.input_cdf.split('/')[-1]
+    cdf_file = cdf_file.replace('.cdf', '')
+    save_dir = os.path.join(os.getcwd(), 'tmp', cdf_file)
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+    save_path = os.path.join(save_dir, title + '.png')
+    plt.savefig(save_path, format='png', dpi=dpi)
+    plt.close()
+
+
 def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str = None,
                           dpi: int = 600,
                           invert_color_channels: bool = False, channel_order: str = 'CHW',
                           max_value: float = 255.,
-                          aspect: float = 1.0, marker_size: float = 0.05, compounds_pixels: dict = None):
+                          aspect: float = 1.0, marker_size: float = 0.05, compounds_pixels: dict = None,
+                          compounds_area: dict = None):
     '''
     Plot image and store it
     :param viz:
@@ -546,7 +594,21 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                             (255, 0, 0),
                             2)
                 x_time, y_time = from_pixels_times(x_compound, y_compound)
-                f.write("{:<8} {:<8} {:<8}\n".format(str(compound), str(x_time), str(y_time)))
+                if compounds_area is not None:
+                    f.write("{:<8} {:<8} {:<8} {:<8} ".format(str(compound), str(x_time), str(y_time),
+                                                              str(compounds_area[compound].item())))
+                    if args.spectrum == 'yes':
+                        write_spectrum_to_file(compounds_pixels[compound][2], f)
+                        create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)
+                    else:
+                        f.write('\n')
+                else:
+                    f.write("{:<8} {:<8} {:<8} ".format(str(compound), str(x_time), str(y_time)))
+                    if args.spectrum == 'yes':
+                        write_spectrum_to_file(compounds_pixels[compound][2], f)
+                        create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)
+                    else:
+                        f.write('\n')
         else:
             raise ValueError('Compounds pixels are not set')
     if args.debug_calibration == 'yes':
@@ -568,7 +630,7 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
 
 
 def visual_check_against_spectrogram(ds, spectrogram_image, directory=None,
-                                     filename=None, compounds_pixels=None):
+                                     filename=None, compounds_pixels=None, compounds_area=None):
     '''
     Visual check of the results against spectrogram
     :param ds:
@@ -579,18 +641,6 @@ def visual_check_against_spectrogram(ds, spectrogram_image, directory=None,
     :return: None
     '''
     global x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, config
-    image = np.zeros((y_ten_seconds, x_six_seconds + x_eight_seconds + x_ten_seconds),
-                     dtype=np.float32)
-    min_ = ds['total_intensity'][:].min()
-    min_ = min_.item()
-    image += min_
-
-    data_pointer = fill_image(image, ds, 0, 0, x_six_seconds, y_six_seconds)
-    data_pointer = fill_image(image, ds, data_pointer, x_six_seconds, x_eight_seconds,
-                              y_eight_seconds)
-    _ = fill_image(image, ds, data_pointer, x_six_seconds + x_eight_seconds, x_ten_seconds,
-                   y_ten_seconds)
-
     if (config.constants['m_z_index'] == -1):
         spectrogram_image = spectrogram_image.sum(0)
     else:
@@ -600,7 +650,8 @@ def visual_check_against_spectrogram(ds, spectrogram_image, directory=None,
     spectrogram_image = spectrogram_image[::-1]
 
     plot_show_maybe_store(spectrogram_image[np.newaxis], aspect=0.2,
-                          directory=directory, filename=filename, compounds_pixels=compounds_pixels)
+                          directory=directory, filename=filename, compounds_pixels=compounds_pixels,
+                          compounds_area=compounds_area)
 
 
 def load_triangles():
@@ -624,21 +675,121 @@ def make_numbers_compounds():
         numbers_compounds[compounds_numbers[compound]] = compound
 
 
+def extract_features(spectrogram_image, compounds_pixels):
+    '''
+    Extract features for area calculation
+    :param spectrogram_image: spectrogram image (3D tensor)
+    :param compounds_pixels: dictionary with pixels for each compound
+    :return: data for model training
+    '''
+    global compounds_numbers
+    original_number_new_number = {}
+    new_number_original_number = {}
+    model = {}
+    model['feas'] = []
+    model['labels_true'] = []
+    i = 0
+    for compound in compounds_pixels:
+        x_compound = compounds_pixels[compound][0]
+        y_compound = compounds_pixels[compound][1]
+        spectrum = spectrogram_image[:, y_compound:y_compound + 1, x_compound:x_compound + 1].clone().cpu().numpy()
+        spectrum = spectrum.flatten()
+        model['feas'].append(spectrum)
+        model['labels_true'].append(i)
+        ref_spectrum = torch.load(f'avg_spectrum/{compound}.pth').cpu().numpy()
+        ref_spectrum = ref_spectrum.flatten()
+        model['feas'].append(ref_spectrum)
+        model['labels_true'].append(i)
+        original_number_new_number[compounds_numbers[compound]] = i
+        new_number_original_number[i] = compounds_numbers[compound]
+        i += 1
+    model['labels_true'] = np.array(model['labels_true'])
+    model['feas'] = np.array(model['feas'])
+    return model
+
+
+def compute_area(model, compounds_pixels, spectrogram_image, visualize=False):
+    '''
+    Compute area for each compound
+    :param model: model for area computation
+    :param compounds_pixels: dictionary with pixels for each compound
+    :param spectrogram_image: spectrogram image (3D tensor)
+    :param visualize: specify whether to visualize the result
+    :return: dictionary with areas for each compound
+    '''
+    compounds_area = {}
+    image = np.zeros((spectrogram_image.shape[1], spectrogram_image.shape[2]))
+    ADD_X = 3
+    ADD_Y = 25
+    sensitivity = 0.93
+    area = 0
+    for compound in compounds_pixels:
+        x_compound = compounds_pixels[compound][0]
+        y_compound = compounds_pixels[compound][1]
+        cut_spetrogram_image = spectrogram_image[:, y_compound - ADD_Y:y_compound + 1 + ADD_Y,
+                               x_compound - ADD_X:x_compound + 1 + ADD_X].clone()
+        cut_spetrogram_image = np.reshape(cut_spetrogram_image.cpu().numpy(), (cut_spetrogram_image.shape[0], -1))
+        cut_spetrogram_image = np.transpose(cut_spetrogram_image)
+        dict = {'feas': cut_spetrogram_image}
+        scores = model.infer(dict)
+        scores = np.reshape(scores, (2 * ADD_Y + 1, 2 * ADD_X + 1))
+        # print(scores.shape)
+        scores = np.array(scores)
+        # print(image[y_compound - ADD_Y:y_compound + 1 + ADD_Y, x_compound - ADD_X:x_compound + 1 + ADD_X].shape)
+        image[y_compound - ADD_Y:y_compound + 1 + ADD_Y,
+        x_compound - ADD_X:x_compound + 1 + ADD_X] += scores
+        image[image < sensitivity] = 0
+        # print(scores.shape)
+        # print(compound, scores)
+        for i in range(scores.shape[0]):
+            for j in range(scores.shape[1]):
+                if scores[i][j] >= sensitivity:
+                    area += spectrogram_image[:, y_compound - ADD_Y + i, x_compound - ADD_X + j].sum()
+        compounds_area[compound] = area
+        area = 0
+    if visualize:
+        image[image < sensitivity] = 0
+        image[image >= sensitivity] = 1
+        image_rgb = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
+        image_rgb[:, :, 0] = (image * 255).astype(np.uint8)
+        result = np.zeros((image.shape[0], 5 * image.shape[1], 3))
+        for i in range(5):
+            result[:, i::5, :] = image_rgb
+        image_rgb = result
+        image_rgb = image_rgb[::-1]
+        cv2.imwrite('area.png', image_rgb)
+    return compounds_area
+
+
 def main():
     global config, dev, system_number, t1_shift, x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, args, compounds_numbers, triangles
     dev = 'cpu'
     if torch.cuda.is_available():
         dev = 'cuda'
     print(dev)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, required=True, default='config.yaml')
-    parser.add_argument('--input_cdf', type=str, required=True, default='input.cdf')
-    parser.add_argument('--clear', type=str, required=False, choices=['yes', 'no'], default='no')
-    parser.add_argument('--shift_method', type=str, required=False, choices=['avg,triangles'], default='triangles')
-    parser.add_argument('--debug_calibration', type=str, required=False, default='no', choices=['yes', 'no'])
+    parser = argparse.ArgumentParser(
+        description='Tool for GCxGC-MS data processing. Made by Jan Hlavsa under supervision of Ing. Bc. Radim Špetlík and prof. Jiří Matas.')
+    parser.add_argument('--config', type=str, required=False, default='config.yaml',
+                        help='Path to the configuration file (YAML format).')
+    parser.add_argument('--input_cdf', type=str, required=False, default='input.cdf',
+                        help='Path to the input CDF file.')
+    parser.add_argument('--clear', type=str, required=False, choices=['yes', 'no'], default='no',
+                        help='Specify whether to clear intermediate data. Choices: yes, no.')
+    parser.add_argument('--shift_method', type=str, required=False, choices=['avg', 'triangles'], default='triangles',
+                        help='Specify the shift method. Choices: avg, triangles.')
+    parser.add_argument('--debug_calibration', type=str, required=False, default='no', choices=['yes', 'no'],
+                        help='Enable debug mode for calibration. Plots triangles. Choices: yes, no.')
+    parser.add_argument('--area', type=str, required=False, default='no', choices=['yes', 'no'],
+                        help='Specify whether to process the area [Work in progress]. Choices: yes, no.')
+    parser.add_argument('--spectrum', type=str, required=False, default='no', choices=['yes', 'no'],
+                        help='Specify whether to save and plot spectrum. Choices: yes, no.')
+
     args = parser.parse_args()
     if (args.clear == 'yes'):
-        os.system('rm -r tmp')
+        if os.path.exists('tmp'):
+            os.system('rm -r tmp')
+        if os.path.exists('area.png'):
+            os.remove('area.png')
         exit(0)
     cdf_path = args.input_cdf
     config = OmegaConf.load(args.config)
@@ -653,13 +804,22 @@ def main():
     avg_shift, calibration_compounds_pixels, shifts_for_compounds = find_shift(compounds_pixels, spectrogram_image)
     compounds_positions = find_positions(compounds_pixels, compounds, calibration_compounds_pixels, avg_shift,
                                          spectrogram_image, shifts_for_compounds)
+    compounds_area = None
+    if args.area == 'yes':
+        model_outputs = extract_features(spectrogram_image, compounds_positions)
+        model = ood_mahalanobis.MahalanobisOODDetector()
+        model.setup(args, model_outputs)
+        # scores = model.infer(model_outputs)
+        # print('scores:', scores)
+        compounds_area = compute_area(model, compounds_positions, spectrogram_image)
     if args.debug_calibration == 'yes':
         # filter just calibration compounds
         compounds_positions = filter_calibration_compounds(compounds_positions)
+    print('Visual check against spectrogram')
     visual_check_against_spectrogram(ds, spectrogram_image.cpu().numpy(),
                                      directory=config.constants.output_directory,
                                      filename=config.constants.output_file_name + '.png',
-                                     compounds_pixels=compounds_positions)
+                                     compounds_pixels=compounds_positions, compounds_area=compounds_area)
 
 
 if __name__ == '__main__':

@@ -378,7 +378,7 @@ Octadecanamide, N-allyl-:
   box_t1: 1
   box_t2: 1
 
-5,10-Diethoxy-2,3,7,8-tetrahydro-1H,6H-dipyrrolo[1,2-a:1',2'-d]pyrazine:
+5,10-Diethoxy-2,3,7,8-tetrahydro-1H,6H-dipyrrolo[1,2-a_1',2'-d]pyrazine:
   t1: 2025.6470588235295
   t2: 1.2706470588235295
   box_t1: 1
