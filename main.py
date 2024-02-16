@@ -9,6 +9,7 @@ import argparse
 from omegaconf import OmegaConf
 import ood_mahalanobis
 import matplotlib.pyplot as plt
+from PIL import Image
 
 config = None
 name = None
@@ -708,7 +709,89 @@ def extract_features(spectrogram_image, compounds_pixels):
     return model
 
 
-def compute_area(model, compounds_pixels, spectrogram_image, visualize=False):
+def make_own_cmap():
+    '''
+    Make own color map for visualization
+    :return: color map
+    '''
+    base_cmaps_20 = ['tab20', 'tab20b', 'tab20c']
+    colors = np.concatenate([plt.get_cmap(name)(np.linspace(0.2, 0.8, 20)) for name in base_cmaps_20])
+    set3_colors = plt.get_cmap('Set3')(np.linspace(0, 1, 12))
+    colors = np.concatenate([colors, set3_colors])
+    seed = 0
+    np.random.seed(seed)
+    np.random.shuffle(colors)
+    colors = colors[:, :3]
+    colors[0] = [0, 0, 0]
+    return colors
+
+
+def visualize_area(image, compounds_pixels):
+    '''
+    Visualize pixels that are taken into account for area computation
+    :param image: image with marked pixels
+    :param compounds_pixels: dictionary with pixels for each compound
+    :return: None
+    '''
+    global args, numbers_compounds
+    colors_rgb = make_own_cmap()
+    colors_bgr = colors_rgb.copy()
+    fig, ax = plt.subplots(figsize=(1, 4))
+    for i, color in enumerate(colors_bgr):
+        ax.fill_between([0, 1], i, i + 1, color=color)
+        ax.text(1.1, i + 0.5, numbers_compounds[i + 1], va='center',
+                fontsize=2)
+    ax.set_xlim(0, 2)
+    ax.set_ylim(0, len(colors_bgr))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    colorbar_image = os.path.join(config.constants.output_directory, 'colorbar.png')
+    plt.savefig(colorbar_image, bbox_inches='tight', format='png', dpi=500)
+    plt.close()
+    for i in range(len(colors_bgr)):
+        colors_bgr[i, 0], colors_bgr[i, 2] = colors_bgr[i, 2], colors_bgr[i, 0]
+        colors_bgr[i] = colors_bgr[i] * 255
+    image_bgr = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            if image[i][j] != 0:
+                image_bgr[i, j, :] = colors_bgr[int(image[i][j] - 1), :]
+            else:
+                # white
+                image_bgr[i, j, :] = [255, 255, 255]
+    result = np.zeros((image.shape[0], 5 * image.shape[1], 3))
+    for i in range(5):
+        result[:, i::5, :] = image_bgr
+    image_bgr = result
+    image_bgr = cv2.flip(image_bgr, 0)
+    for compound in compounds_pixels:
+        x_compound = compounds_pixels[compound][0] * 5
+        x_compound += 2
+        y_compound = image.shape[0] - compounds_pixels[compound][1] - 1
+        image_bgr = cv2.putText(image_bgr, str(compounds_numbers[compound]), (x_compound + 10, y_compound - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    save_path_area = os.path.join(config.constants.output_directory, 'area.png')
+    cv2.imwrite(save_path_area, image_bgr)
+    image1 = Image.open(colorbar_image)
+    image2 = Image.open(save_path_area)
+    width1, height1 = image1.size
+    width2, height2 = image2.size
+    new_height = max(height1, height2)
+    new_image = Image.new('RGBA', (width1 + width2, new_height))
+    new_image.paste(image1, (0, 0))
+    new_image.paste(image2, (width1, 0))
+    saving_name_merged = 'area_ood.png'
+    merged_image_path = os.path.join(config.constants.output_directory, saving_name_merged)
+    new_image.save(merged_image_path)
+    os.remove(colorbar_image)
+    os.remove(save_path_area)
+
+
+def compute_area(model, compounds_pixels, spectrogram_image, visualize=True):
     '''
     Compute area for each compound
     :param model: model for area computation
@@ -717,11 +800,12 @@ def compute_area(model, compounds_pixels, spectrogram_image, visualize=False):
     :param visualize: specify whether to visualize the result
     :return: dictionary with areas for each compound
     '''
+    global config
     compounds_area = {}
     image = np.zeros((spectrogram_image.shape[1], spectrogram_image.shape[2]))
-    ADD_X = 3
-    ADD_Y = 25
-    sensitivity = 0.93
+    ADD_X = config.constants.area_box_t1
+    ADD_Y = config.constants.area_box_t2
+    sensitivity = config.constants.area_threshold
     area = 0
     for compound in compounds_pixels:
         x_compound = compounds_pixels[compound][0]
@@ -736,9 +820,11 @@ def compute_area(model, compounds_pixels, spectrogram_image, visualize=False):
         # print(scores.shape)
         scores = np.array(scores)
         # print(image[y_compound - ADD_Y:y_compound + 1 + ADD_Y, x_compound - ADD_X:x_compound + 1 + ADD_X].shape)
-        image[y_compound - ADD_Y:y_compound + 1 + ADD_Y,
-        x_compound - ADD_X:x_compound + 1 + ADD_X] += scores
-        image[image < sensitivity] = 0
+        part_of_image = image[y_compound - ADD_Y:y_compound + 1 + ADD_Y,
+                        x_compound - ADD_X:x_compound + 1 + ADD_X]
+        part_of_image += scores
+        part_of_image[part_of_image < sensitivity] = 0
+        part_of_image[part_of_image >= sensitivity] = compounds_numbers[compound]
         # print(scores.shape)
         # print(compound, scores)
         for i in range(scores.shape[0]):
@@ -748,16 +834,7 @@ def compute_area(model, compounds_pixels, spectrogram_image, visualize=False):
         compounds_area[compound] = area
         area = 0
     if visualize:
-        image[image < sensitivity] = 0
-        image[image >= sensitivity] = 1
-        image_rgb = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
-        image_rgb[:, :, 0] = (image * 255).astype(np.uint8)
-        result = np.zeros((image.shape[0], 5 * image.shape[1], 3))
-        for i in range(5):
-            result[:, i::5, :] = image_rgb
-        image_rgb = result
-        image_rgb = image_rgb[::-1]
-        cv2.imwrite('area.png', image_rgb)
+        visualize_area(image, compounds_pixels)
     return compounds_area
 
 
@@ -788,8 +865,8 @@ def main():
     if (args.clear == 'yes'):
         if os.path.exists('tmp'):
             os.system('rm -r tmp')
-        if os.path.exists('area.png'):
-            os.remove('area.png')
+        if os.path.exists('area_ood.png'):
+            os.remove('area_ood.png')
         exit(0)
     cdf_path = args.input_cdf
     config = OmegaConf.load(args.config)
@@ -811,7 +888,8 @@ def main():
         model.setup(args, model_outputs)
         # scores = model.infer(model_outputs)
         # print('scores:', scores)
-        compounds_area = compute_area(model, compounds_positions, spectrogram_image)
+        compounds_area = compute_area(model, compounds_positions, spectrogram_image,
+                                      visualize=config.constants.visualize_area)
     if args.debug_calibration == 'yes':
         # filter just calibration compounds
         compounds_positions = filter_calibration_compounds(compounds_positions)

@@ -10,7 +10,6 @@ class MahalanobisOODDetector(OODDetector):
         print('Setting up Mahalanobis OOD detector...')
         train_feas = id_train_model_outputs['feas']
         train_labels = id_train_model_outputs['labels_true']
-        print('train_feas:', train_feas.shape)
         self.mahalanobis = Mahalanobis(normalize_on=False, standardize_on=False)
         self.mahalanobis.fit(train_feas, train_labels)
 
