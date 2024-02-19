@@ -597,7 +597,7 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                 x_time, y_time = from_pixels_times(x_compound, y_compound)
                 if compounds_area is not None:
                     f.write("{:<8} {:<8} {:<8} {:<8} ".format(str(compound), str(x_time), str(y_time),
-                                                              str(compounds_area[compound].item())))
+                                                              str(compounds_area[compound])))
                     if args.spectrum == 'yes':
                         write_spectrum_to_file(compounds_pixels[compound][2], f)
                         create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)
@@ -791,7 +791,7 @@ def visualize_area(image, compounds_pixels):
     os.remove(save_path_area)
 
 
-def compute_area(model, compounds_pixels, spectrogram_image, visualize=True):
+def compute_area(compounds_pixels, spectrogram_image, mask_spectrum, model=None, visualize=True):
     '''
     Compute area for each compound
     :param model: model for area computation
@@ -800,42 +800,82 @@ def compute_area(model, compounds_pixels, spectrogram_image, visualize=True):
     :param visualize: specify whether to visualize the result
     :return: dictionary with areas for each compound
     '''
-    global config
+    global config, compounds_numbers
+    compounds_area_threshold = OmegaConf.load('compounds_area_threshold.yaml')
     compounds_area = {}
     image = np.zeros((spectrogram_image.shape[1], spectrogram_image.shape[2]))
+    image_sens = np.zeros((spectrogram_image.shape[1], spectrogram_image.shape[2]))
     ADD_X = config.constants.area_box_t1
     ADD_Y = config.constants.area_box_t2
-    sensitivity = config.constants.area_threshold
     area = 0
     for compound in compounds_pixels:
+        sensitivity = compounds_area_threshold[compound]
+        mask = mask_spectrum[compound]
         x_compound = compounds_pixels[compound][0]
         y_compound = compounds_pixels[compound][1]
         cut_spetrogram_image = spectrogram_image[:, y_compound - ADD_Y:y_compound + 1 + ADD_Y,
                                x_compound - ADD_X:x_compound + 1 + ADD_X].clone()
-        cut_spetrogram_image = np.reshape(cut_spetrogram_image.cpu().numpy(), (cut_spetrogram_image.shape[0], -1))
-        cut_spetrogram_image = np.transpose(cut_spetrogram_image)
-        dict = {'feas': cut_spetrogram_image}
-        scores = model.infer(dict)
-        scores = np.reshape(scores, (2 * ADD_Y + 1, 2 * ADD_X + 1))
-        # print(scores.shape)
-        scores = np.array(scores)
-        # print(image[y_compound - ADD_Y:y_compound + 1 + ADD_Y, x_compound - ADD_X:x_compound + 1 + ADD_X].shape)
+        spectrum_at_click = spectrogram_image[:, y_compound:y_compound + 1, x_compound:x_compound + 1].clone()
+        for i in range(len(mask)):
+            if mask[i] == 0:
+                cut_spetrogram_image[i, :, :] = 0
+                spectrum_at_click[i, :, :] = 0
+        spectrum_at_click = spectrum_at_click.double()
+        norma = torch.norm(spectrum_at_click)
+        spectrum_at_click = spectrum_at_click / norma
+        cut_spetrogram_image = cut_spetrogram_image.double()
+        cut_spetrogram_image = cut_spetrogram_image / norma
+        # cut_spetrogram_image = torch.nn.functional.normalize(cut_spetrogram_image, dim=0)
+        dot = cut_spetrogram_image * spectrum_at_click
+        scores = dot.sum(dim=0)
         part_of_image = image[y_compound - ADD_Y:y_compound + 1 + ADD_Y,
-                        x_compound - ADD_X:x_compound + 1 + ADD_X]
-        part_of_image += scores
+                        x_compound - ADD_X:x_compound + 1 + ADD_X].copy()
+        part_of_image += scores.cpu().numpy()
+        # because of padding
         part_of_image[part_of_image < sensitivity] = 0
-        part_of_image[part_of_image >= sensitivity] = compounds_numbers[compound]
-        # print(scores.shape)
-        # print(compound, scores)
-        for i in range(scores.shape[0]):
-            for j in range(scores.shape[1]):
-                if scores[i][j] >= sensitivity:
-                    area += spectrogram_image[:, y_compound - ADD_Y + i, x_compound - ADD_X + j].sum()
+        for i in range(part_of_image.shape[0]):
+            for j in range(part_of_image.shape[1]):
+                if part_of_image[i, j] != 0:
+                    if image_sens[y_compound - ADD_Y + i, x_compound - ADD_X + j] == 0 or \
+                            image_sens[y_compound - ADD_Y + i, x_compound - ADD_X + j] > part_of_image[i, j]:
+                        image_sens[y_compound - ADD_Y + i, x_compound - ADD_X + j] = part_of_image[i, j]
+                        image[y_compound - ADD_Y + i, x_compound - ADD_X + j] = compounds_numbers[compound]
+        for i in range(part_of_image.shape[0]):
+            for j in range(part_of_image.shape[1]):
+                if part_of_image[i][j] != 0:
+                    area += spectrogram_image[:, i + y_compound - ADD_Y, j + x_compound - ADD_X].sum()
         compounds_area[compound] = area
+        for compound in compounds_area:
+            if not isinstance(compounds_area[compound], int):
+                compounds_area[compound] = int(compounds_area[compound])
         area = 0
     if visualize:
+        print('Visualizing area')
         visualize_area(image, compounds_pixels)
     return compounds_area
+
+
+def load_reference_spectrum_indexes(size):
+    '''
+    Load important indexes for each compound
+    :param size: size of the spectrum
+    :return: dictionary with important indexes for each compound
+    '''
+    compounds_indexes = {}
+    with open('compounds_indexes.txt', 'r') as f:
+        for line in f:
+            compound = line.replace('\n', '')
+            indexes = f.readline()
+            spectrum = np.zeros(size)
+            indexes = indexes.split(' ')
+            for index in indexes:
+                if index == '\n':
+                    break
+                index, value = index.split(':')
+                spectrum[int(index)] = float(value)
+            spectrum[spectrum > 0] = 1
+            compounds_indexes[compound] = spectrum
+    return compounds_indexes
 
 
 def main():
@@ -883,12 +923,16 @@ def main():
                                          spectrogram_image, shifts_for_compounds)
     compounds_area = None
     if args.area == 'yes':
-        model_outputs = extract_features(spectrogram_image, compounds_positions)
-        model = ood_mahalanobis.MahalanobisOODDetector()
-        model.setup(args, model_outputs)
+        mask_spectrum = load_reference_spectrum_indexes(spectrogram_image.shape[0])
+        # model_outputs = extract_features(spectrogram_image, compounds_positions)
+        # dict = {'logits': model_outputs['feas']}
+        # msp = ood_msp.MSPOODDetector()
+        # msp.setup(args, dict)
+        # scores = msp.infer(dict)
+        # model = ood_mahalanobis.MahalanobisOODDetector()
+        # model.setup(args, model_outputs)
         # scores = model.infer(model_outputs)
-        # print('scores:', scores)
-        compounds_area = compute_area(model, compounds_positions, spectrogram_image,
+        compounds_area = compute_area(compounds_positions, spectrogram_image, mask_spectrum,
                                       visualize=config.constants.visualize_area)
     if args.debug_calibration == 'yes':
         # filter just calibration compounds

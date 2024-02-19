@@ -9,10 +9,9 @@ constants:
   box_t2: 20
   dot_product_threshold: 0.8
   m_z_index: -1
-  area_box_t1: 4
-  area_box_t2: 100
-  area_threshold: 0.95
-  visualize_area: False
+  area_box_t1: 3
+  area_box_t2: 80
+  visualize_area: True
 
 calibration_compounds:
   - Heptacosane

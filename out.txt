@@ -1,53 +1,53 @@
-Heptacosane 12948    3.835    972737414 
-Nonacosane 13898    3.64     28999666 
-Dodecane, 1-chloro- 4548     6.72     7272714  
-1-Dodecanol 4948     7.085    3442819  
-Ethanol, 2-(dodecyloxy)- 7548     6.965    44537825 
-2-Hexyl-1-octanol 7398     6.5      11345932 
-Tetradecane, 1-chloro- 6648     6.43     9703491  
-1-Hexadecanol 8748     6.505    293471184 
-Methoxyacetic acid, dodecyl ester 8898     7.3      61712007 
-2,5-pyrrolidinedione, 3-decyl- 8298     6.41     242240630 
-2,5-pyrrolidinedione, 3-dodecyl- 9948     6.08     7050855  
-Diethylene glycol monododecyl ether 10798    7.135    3561650  
-1-Octadecanol 10248    6.21     10053808 
-Dodecanamide, N-allyl- 10398    7.83     23959053 
-2,5-pyrrolidinedione, 3-tetradecyl- 11098    5.77     18333816 
-Tetradecanamide, N-allyl- 11648    7.705    270181308 
-2,5-pyrrolidinedione, 3-hexadecyl- 12198    5.585    571402382 
-Benzoic acid, tridecyl ester 11948    6.68     129431960 
-Fumaric acid, 2-dimethylaminoethyl heptyl ester 12398    7.79     456808769 
-Squalene 13548    3.515    260659962 
-Cholesta-3,5-diene (izomer 2) 14298    4.575    53045698 
-Cholesterol 15648    5.435    195577483 
-Hexadecanoic acid, dodecyl ester 14948    5.585    125173487 
-9-Hexadecenoic acid, tetradecyl ester 15548    5.305    235937946 
-Hexadecanoic acid, tetradecyl ester 15648    5.21     161838525 
-9-Hexadecenoic acid, hexadecyl ester 16198    4.97     196994215 
-Hexadecanoic acid, hexadecyl ester 16298    4.965    191951166 
-9-Hexadecenoic acid, octadecyl ester 16798    4.325    48909367 
-Hexacosane 12448    4.045    799431816 
-Pentacosane 11948    4.13     722791520 
-Octacosane 13448    3.865    472511428 
-1-Tetradecanol 6898     6.745    18135225 
-Benzoic acid, dodecyl ester 11348    6.79     39975352 
-Triethylene glycol monododecyl ether 12448    7.085    372564356 
-Benzoic acid, tetradecyl ester 12498    6.585    161971257 
-Octocrylene 14948    7.65     428204288 
-Cholesta-3,5-dien-7-one 16598    6.475    247557138 
-Cholesta-4,6-dien-3-one 17148    6.855    32346460 
-Cholest-4-en-3-one 17048    6.905    32346460 
-Hexadecanoic acid, octadecyl ester 16898    4.495    52446191 
-Ethanol, 2-(tetradecyloxy)- 9348     6.715    99519101 
-1-Decanol, 2-hexyl- 9198     6.285    388689678 
-Fumaric acid, 2-dimethylaminoethyl nonyl ester 13498    7.665    409993765 
-9-Hexadecenoic acid, eicosyl ester 17298    3.89     26029504 
-Isopropyl myristate 8548     6.865    194460460 
-Hexadecanamide, N-allyl- 12748    7.535    662683130 
-alpha-Tocopheryl acetate 16198    6.22     435177257 
-9-Hexadecenoic acid, dodecyl ester 14848    5.635    184784002 
-Cholesta-3,5-diene (izomer 1) 13598    4.73     276739787 
-Fumaric acid, 2-dimethylaminoethyl tridecyl ester 15348    7.225    395391417 
-Benzoic acid, pentadecyl ester 13048    6.485    85224807 
-Isopropyl palmitate 10098    6.61     7574425  
-Hexadecanoic acid, eicosyl ester 17448    3.84     26029504 
+Heptacosane 12948    3.835    44627339 
+Nonacosane 13898    3.64     478162383 
+Dodecane, 1-chloro- 4548     6.72     224317432 
+1-Dodecanol 4948     7.085    172219624 
+Ethanol, 2-(dodecyloxy)- 7548     6.965    180596962 
+2-Hexyl-1-octanol 7398     6.5      244543441 
+Tetradecane, 1-chloro- 6648     6.43     113508827 
+1-Hexadecanol 8748     6.505    1876673971 
+Methoxyacetic acid, dodecyl ester 8898     7.3      2762676987 
+2,5-pyrrolidinedione, 3-decyl- 8298     6.41     946926973 
+2,5-pyrrolidinedione, 3-dodecyl- 9948     6.08     2329087531 
+Diethylene glycol monododecyl ether 10798    7.135    427263310 
+1-Octadecanol 10248    6.21     1532551832 
+Dodecanamide, N-allyl- 10398    7.83     126794515 
+2,5-pyrrolidinedione, 3-tetradecyl- 11098    5.77     335159543 
+Tetradecanamide, N-allyl- 11648    7.705    1249850307 
+2,5-pyrrolidinedione, 3-hexadecyl- 12198    5.585    46588453 
+Benzoic acid, tridecyl ester 11948    6.68     74564996 
+Fumaric acid, 2-dimethylaminoethyl heptyl ester 12398    7.79     110923924 
+Squalene 13548    3.515    14614287849 
+Cholesta-3,5-diene (izomer 2) 14298    4.575    326402031 
+Cholesterol 15648    5.435    1341293266 
+Hexadecanoic acid, dodecyl ester 14948    5.585    802916202 
+9-Hexadecenoic acid, tetradecyl ester 15548    5.305    3588861712 
+Hexadecanoic acid, tetradecyl ester 15648    5.21     3588861712 
+9-Hexadecenoic acid, hexadecyl ester 16198    4.97     1267967921 
+Hexadecanoic acid, hexadecyl ester 16298    4.965    4859257981 
+9-Hexadecenoic acid, octadecyl ester 16798    4.325    1219892168 
+Hexacosane 12448    4.045    69072064 
+Pentacosane 11948    4.13     130204091 
+Octacosane 13448    3.865    11781522280 
+1-Tetradecanol 6898     6.745    96936567 
+Benzoic acid, dodecyl ester 11348    6.79     837076737 
+Triethylene glycol monododecyl ether 12448    7.085    46526756 
+Benzoic acid, tetradecyl ester 12498    6.585    87839544 
+Octocrylene 14948    7.65     236496903 
+Cholesta-3,5-dien-7-one 16598    6.475    128587854 
+Cholesta-4,6-dien-3-one 17148    6.855    355937348 
+Cholest-4-en-3-one 17048    6.905    401926507 
+Hexadecanoic acid, octadecyl ester 16898    4.495    8580990993 
+Ethanol, 2-(tetradecyloxy)- 9348     6.715    1937774168 
+1-Decanol, 2-hexyl- 9198     6.285    1002878501 
+Fumaric acid, 2-dimethylaminoethyl nonyl ester 13498    7.665    1472006683 
+9-Hexadecenoic acid, eicosyl ester 17298    3.89     8545449626 
+Isopropyl myristate 8548     6.865    1703185606 
+Hexadecanamide, N-allyl- 12748    7.535    321932874 
+alpha-Tocopheryl acetate 16198    6.22     674936993 
+9-Hexadecenoic acid, dodecyl ester 14848    5.635    949867040 
+Cholesta-3,5-diene (izomer 1) 13598    4.73     944317458 
+Fumaric acid, 2-dimethylaminoethyl tridecyl ester 15348    7.225    86436982 
+Benzoic acid, pentadecyl ester 13048    6.485    124375352 
+Isopropyl palmitate 10098    6.61     7393531991 
+Hexadecanoic acid, eicosyl ester 17448    3.84     10685923337 
