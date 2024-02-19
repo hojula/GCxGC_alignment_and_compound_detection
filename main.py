@@ -503,10 +503,11 @@ def write_spectrum_to_file(spectrum, f):
     :param f: opened file
     :return: None
     '''
+    f.write('\t')
     for i in range(len(spectrum)):
         if i == 0:
             continue
-        f.write(f'{i}:{spectrum[i]} ')
+        f.write(f'{i}:{spectrum[i]};')
     f.write('\n')
 
 
@@ -518,14 +519,23 @@ def create_spectrum_graph(dpi, spectrum, title):
     :param title: title of the graph
     :return: None
     '''
-    global args
-    spectrum_values = spectrum[:].cpu().numpy()
+    global args, config
+    num_of_points = config.constants['m_z_importance']
+    start = int(config.constants['m_z_start'])
+    end = int(config.constants['m_z_end'])
+    spectrum_values = spectrum[start:end].cpu().numpy()
+    top_indices = np.argsort(spectrum_values)[-num_of_points:]
     # Create the plot
     plt.figure(figsize=((13, 7)))
     plt.subplots_adjust(left=0.15, right=0.85, top=0.85, bottom=0.15)
     indices = torch.arange(len(spectrum_values))
     plt.plot(indices, spectrum_values, marker='', linestyle='-', color='r', label='Spectrum',
-             linewidth=1)
+             linewidth=0.8)
+    plt.plot(top_indices, spectrum_values[top_indices], marker='o', linestyle='', color='g', label='Highest Values',
+             markersize=3)
+    for i, txt in enumerate(top_indices):
+        txt = int(txt + start)
+        plt.annotate(txt, (top_indices[i], spectrum_values[top_indices[i]]), color='g', ha='right', va='bottom')
     plt.xlabel('m/z')
     plt.ylabel('Intensity')
     plt.title(title)
@@ -586,6 +596,7 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
             for compound in compounds_pixels:
                 x_compound = compounds_pixels[compound][0]
                 y_compound = compounds_pixels[compound][1]
+                x_time, y_time = from_pixels_times(x_compound, y_compound)
                 x_compound *= 5
                 x_compound += 2
                 y_compound = original_height - y_compound - 1
@@ -594,17 +605,17 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                             (255, 0, 0),
                             2)
-                x_time, y_time = from_pixels_times(x_compound, y_compound)
                 if compounds_area is not None:
-                    f.write("{:<8} {:<8} {:<8} {:<8} ".format(str(compound), str(x_time), str(y_time),
-                                                              str(compounds_area[compound])))
+                    f.write(
+                        "{}\t{}\t{}\t{}".format(str(compound), str(x_time), str(y_time), str(compounds_area[compound])))
                     if args.spectrum == 'yes':
                         write_spectrum_to_file(compounds_pixels[compound][2], f)
                         create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)
                     else:
                         f.write('\n')
                 else:
-                    f.write("{:<8} {:<8} {:<8} ".format(str(compound), str(x_time), str(y_time)))
+                    f.write(
+                        "{}\t{}\t{}".format(str(compound), str(x_time), str(y_time)))
                     if args.spectrum == 'yes':
                         write_spectrum_to_file(compounds_pixels[compound][2], f)
                         create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)
@@ -649,7 +660,8 @@ def visual_check_against_spectrogram(ds, spectrogram_image, directory=None,
     spectrogram_image = spectrogram_image - spectrogram_image[spectrogram_image > 0].min()
     spectrogram_image[spectrogram_image < 0] = 0
     spectrogram_image = spectrogram_image[::-1]
-
+    if filename == 'original.png':
+        filename = args.input_cdf.split('/')[-1].replace('.cdf', '.png')
     plot_show_maybe_store(spectrogram_image[np.newaxis], aspect=0.2,
                           directory=directory, filename=filename, compounds_pixels=compounds_pixels,
                           compounds_area=compounds_area)
