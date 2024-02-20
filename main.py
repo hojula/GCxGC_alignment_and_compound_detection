@@ -607,7 +607,8 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                             2)
                 if compounds_area is not None:
                     f.write(
-                        "{}\t{}\t{}\t{}".format(str(compound), str(x_time), str(y_time), str(compounds_area[compound])))
+                        "{}\t{}\t{}\t{}\t{}".format(compounds_numbers[compound], str(compound), str(x_time),
+                                                    str(y_time), str(compounds_area[compound])))
                     if args.spectrum == 'yes':
                         write_spectrum_to_file(compounds_pixels[compound][2], f)
                         create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)
@@ -615,7 +616,7 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                         f.write('\n')
                 else:
                     f.write(
-                        "{}\t{}\t{}".format(str(compound), str(x_time), str(y_time)))
+                        "{}\t{}\t{}\t{}".format(compounds_numbers[compound], str(compound), str(x_time), str(y_time)))
                     if args.spectrum == 'yes':
                         write_spectrum_to_file(compounds_pixels[compound][2], f)
                         create_spectrum_graph(dpi, compounds_pixels[compound][2], compound)

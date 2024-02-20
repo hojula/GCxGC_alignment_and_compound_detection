@@ -11,7 +11,7 @@ constants:
   m_z_start: 29
   m_z_end: 500
   dot_product_threshold: 0.8
-  m_z_index: 300
+  m_z_index: -1
   area_box_t1: 3
   area_box_t2: 80
   visualize_area: True
