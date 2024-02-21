@@ -520,22 +520,38 @@ def create_spectrum_graph(dpi, spectrum, title):
     :return: None
     '''
     global args, config
-    num_of_points = config.constants['m_z_importance']
+    num_of_points_under_100 = config.constants['m_z_importance_untill_100']
+    num_of_points_over_100 = config.constants['m_z_importance_over_100']
     start = int(config.constants['m_z_start'])
     end = int(config.constants['m_z_end'])
     spectrum_values = spectrum[start:end].cpu().numpy()
-    top_indices = np.argsort(spectrum_values)[-num_of_points:]
+    spectrum_values_under_100 = spectrum_values[:100 - start]
+    spectrum_values_over_100 = spectrum_values[100 - start:]
+    top_indices_under_100 = np.argsort(spectrum_values_under_100)[-num_of_points_under_100:]
+    top_indices_over_100 = np.argsort(spectrum_values_over_100)[-num_of_points_over_100:]
     # Create the plot
     plt.figure(figsize=((13, 7)))
     plt.subplots_adjust(left=0.15, right=0.85, top=0.85, bottom=0.15)
     indices = torch.arange(len(spectrum_values))
-    plt.plot(indices, spectrum_values, marker='', linestyle='-', color='r', label='Spectrum',
+    plt.plot(indices + start, spectrum_values, marker='', linestyle='-', color='r', label='Spectrum',
              linewidth=0.8)
-    plt.plot(top_indices, spectrum_values[top_indices], marker='o', linestyle='', color='g', label='Highest Values',
-             markersize=3)
-    for i, txt in enumerate(top_indices):
+    plt.plot(top_indices_under_100 + start, spectrum_values_under_100[top_indices_under_100], marker='o', linestyle='',
+             color='g',
+             label='Highest Values',
+             markersize=1)
+    plt.plot(top_indices_over_100 + 100, spectrum_values_over_100[top_indices_over_100], marker='o', linestyle='',
+             color='g',
+             label='Highest Values',
+             markersize=1)
+    for i, txt in enumerate(top_indices_under_100):
         txt = int(txt + start)
-        plt.annotate(txt, (top_indices[i], spectrum_values[top_indices[i]]), color='g', ha='right', va='bottom')
+        plt.annotate(txt, (top_indices_under_100[i] + start, spectrum_values_under_100[top_indices_under_100[i]]),
+                     color='g',
+                     ha='right', va='bottom', fontsize=4)
+    for i, txt in enumerate(top_indices_over_100):
+        txt = int(txt + 100)
+        plt.annotate(txt, (top_indices_over_100[i] + 100, spectrum_values_over_100[top_indices_over_100[i]]), color='g',
+                     ha='right', va='bottom', fontsize=4)
     plt.xlabel('m/z')
     plt.ylabel('Intensity')
     plt.title(title)
@@ -600,11 +616,10 @@ def plot_show_maybe_store(viz: np.ndarray, filename: str = None, directory: str 
                 x_compound *= 5
                 x_compound += 2
                 y_compound = original_height - y_compound - 1
-                viz = cv2.circle(viz, (x_compound, y_compound), radius=4, color=(255, 0, 0), thickness=3)
-                cv2.putText(viz, str(compounds_numbers[compound]), (x_compound + 10, y_compound - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            (255, 0, 0),
-                            2)
+                viz = cv2.circle(viz, (x_compound, y_compound), radius=4, color=(255, 0, 0), thickness=2)
+                cv2.putText(viz, str(compounds_numbers[compound]), (x_compound + 15, y_compound - 15),
+                            cv2.FONT_HERSHEY_SIMPLEX, config.constants['font_size_chromatogram'],
+                            (255, 0, 0), config.constants['font_thickness_chromatogram'])
                 if compounds_area is not None:
                     f.write(
                         "{}\t{}\t{}\t{}\t{}".format(compounds_numbers[compound], str(compound), str(x_time),
@@ -729,7 +744,7 @@ def make_own_cmap():
     '''
     base_cmaps_20 = ['tab20', 'tab20b', 'tab20c']
     colors = np.concatenate([plt.get_cmap(name)(np.linspace(0.2, 0.8, 20)) for name in base_cmaps_20])
-    set3_colors = plt.get_cmap('Set3')(np.linspace(0, 1, 12))
+    set3_colors = plt.get_cmap('Set3')(np.linspace(0, 1, 20))
     colors = np.concatenate([colors, set3_colors])
     seed = 0
     np.random.seed(seed)
@@ -746,11 +761,12 @@ def visualize_area(image, compounds_pixels):
     :param compounds_pixels: dictionary with pixels for each compound
     :return: None
     '''
-    global args, numbers_compounds
+    global args, numbers_compounds, config
     colors_rgb = make_own_cmap()
     colors_bgr = colors_rgb.copy()
     fig, ax = plt.subplots(figsize=(1, 4))
-    for i, color in enumerate(colors_bgr):
+    for i in range(len(numbers_compounds)):
+        color = colors_rgb[i]
         ax.fill_between([0, 1], i, i + 1, color=color)
         ax.text(1.1, i + 0.5, numbers_compounds[i + 1], va='center',
                 fontsize=2)
@@ -785,8 +801,9 @@ def visualize_area(image, compounds_pixels):
         x_compound = compounds_pixels[compound][0] * 5
         x_compound += 2
         y_compound = image.shape[0] - compounds_pixels[compound][1] - 1
-        image_bgr = cv2.putText(image_bgr, str(compounds_numbers[compound]), (x_compound + 10, y_compound - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        image_bgr = cv2.putText(image_bgr, str(compounds_numbers[compound]), (x_compound + 15, y_compound - 15),
+                                cv2.FONT_HERSHEY_SIMPLEX, config.constants['font_size_chromatogram'], (0, 0, 255),
+                                config.constants['font_thickness_chromatogram'])
     save_path_area = os.path.join(config.constants.output_directory, 'area.png')
     cv2.imwrite(save_path_area, image_bgr)
     image1 = Image.open(colorbar_image)
@@ -932,6 +949,10 @@ def main():
     compounds = load_ref_compounds()
     compounds_pixels = from_times_pixels(compounds)
     avg_shift, calibration_compounds_pixels, shifts_for_compounds = find_shift(compounds_pixels, spectrogram_image)
+    if (len(calibration_compounds_pixels.keys()) < len(config.calibration_compounds)):
+        print('Not all calibration compounds were found. Please change the calibration compounds as well as triangles.')
+        print('Calibration compounds found: ', calibration_compounds_pixels.keys())
+        exit(1)
     compounds_positions = find_positions(compounds_pixels, compounds, calibration_compounds_pixels, avg_shift,
                                          spectrogram_image, shifts_for_compounds)
     compounds_area = None

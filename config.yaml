@@ -7,7 +7,8 @@ constants:
   system_number: 2
   box_t1: 2
   box_t2: 20
-  m_z_importance: 5
+  m_z_importance_untill_100: 10
+  m_z_importance_over_100: 10
   m_z_start: 29
   m_z_end: 500
   dot_product_threshold: 0.8
@@ -15,6 +16,8 @@ constants:
   area_box_t1: 3
   area_box_t2: 80
   visualize_area: True
+  font_size_chromatogram: 0.2
+  font_thickness_chromatogram: 1
 
 calibration_compounds:
   - Heptacosane
@@ -43,22 +46,22 @@ calibration_compounds:
   - Hexadecanoic acid, octadecyl ester
 
 triangles:
-  - 3 37 38
-  - 37 38 69
-  - 10 37 69
-  - 10 11 37
-  - 11 37 41
-  - 11 13 41
-  - 12 13 41
-  - 12 41 48
-  - 31 41 48
-  - 31 34 41
-  - 10 67 69
-  - 10 11 67
-  - 11 13 67
-  - 12 13 67
-  - 12 48 67
-  - 21 48 67
-  - 21 31 48
-  - 21 31 34
+  - 3 35 36
+  - 35 36 67
+  - 9 35 67
+  - 9 10 35
+  - 10 35 39
+  - 10 12 39
+  - 11 12 39
+  - 11 39 46
+  - 29 39 46
+  - 29 32 39
+  - 9 65 67
+  - 9 10 65
+  - 10 12 65
+  - 11 12 65
+  - 11 46 65
+  - 20 46 65
+  - 20 29 46
+  - 20 29 32
 
