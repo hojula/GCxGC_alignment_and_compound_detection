@@ -31,11 +31,14 @@ config.yaml options:
 * system_number - '1/2/3'
 * box_t1 - length in each direction t1 to be added to the expected position to find calibration compound [px]
 * box_t2 - length in each direction t2 to be added to the expected position to find calibration compound [px]
-* m_z_importance - number of points in the spectrum graph
+* m_z_importance_untill_100 - number of points in spectrum graph till m/z 100
+* m_z_importance_over_100 - number of points in spectrum graph over m/z 100
 * m_z_start - start of the spectrum graph
 * m_z_end - end of the spectrum graph
 * dot_product_threshold - the minimum value of the dot product at which the substance is declared to conform (normalized dot product used -> [0,1])
 * m_z_index - plot only specific m/z index if -1 then the sum is plotted
+* font_size_chromatogram
+* font_thickness_chromatogram
 * calibration compounds - compounds used to find the shift
 
 compounds_system1/2/3.yaml:
