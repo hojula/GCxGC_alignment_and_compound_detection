@@ -520,15 +520,18 @@ def create_spectrum_graph(dpi, spectrum, title):
     :return: None
     '''
     global args, config
-    num_of_points_under_100 = config.constants['m_z_importance_untill_100']
-    num_of_points_over_100 = config.constants['m_z_importance_over_100']
+    num_of_points_under_100 = config.constants['m_z_importance_until_100']
+    num_of_points_over_100 = config.constants['m_z_importance_until_200']
+    num_of_points_over_200 = config.constants['m_z_importance_over_200']
     start = int(config.constants['m_z_start'])
     end = int(config.constants['m_z_end'])
     spectrum_values = spectrum[start:end].cpu().numpy()
     spectrum_values_under_100 = spectrum_values[:100 - start]
     spectrum_values_over_100 = spectrum_values[100 - start:]
+    spectrum_values_over_200 = spectrum_values[200 - start:]
     top_indices_under_100 = np.argsort(spectrum_values_under_100)[-num_of_points_under_100:]
     top_indices_over_100 = np.argsort(spectrum_values_over_100)[-num_of_points_over_100:]
+    top_indices_over_200 = np.argsort(spectrum_values_over_200)[-num_of_points_over_200:]
     # Create the plot
     plt.figure(figsize=((13, 7)))
     plt.subplots_adjust(left=0.15, right=0.85, top=0.85, bottom=0.15)
@@ -543,6 +546,10 @@ def create_spectrum_graph(dpi, spectrum, title):
              color='g',
              label='Highest Values',
              markersize=1)
+    plt.plot(top_indices_over_200 + 200, spectrum_values_over_200[top_indices_over_200], marker='o', linestyle='',
+             color='g',
+             label='Highest Values',
+             markersize=1)
     for i, txt in enumerate(top_indices_under_100):
         txt = int(txt + start)
         plt.annotate(txt, (top_indices_under_100[i] + start, spectrum_values_under_100[top_indices_under_100[i]]),
@@ -551,6 +558,10 @@ def create_spectrum_graph(dpi, spectrum, title):
     for i, txt in enumerate(top_indices_over_100):
         txt = int(txt + 100)
         plt.annotate(txt, (top_indices_over_100[i] + 100, spectrum_values_over_100[top_indices_over_100[i]]), color='g',
+                     ha='right', va='bottom', fontsize=4)
+    for i, txt in enumerate(top_indices_over_200):
+        txt = int(txt + 200)
+        plt.annotate(txt, (top_indices_over_200[i] + 200, spectrum_values_over_200[top_indices_over_200[i]]), color='g',
                      ha='right', va='bottom', fontsize=4)
     plt.xlabel('m/z')
     plt.ylabel('Intensity')

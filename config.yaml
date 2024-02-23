@@ -7,8 +7,9 @@ constants:
   system_number: 2
   box_t1: 2
   box_t2: 20
-  m_z_importance_untill_100: 10
-  m_z_importance_over_100: 10
+  m_z_importance_until_100: 2
+  m_z_importance_until_200: 5
+  m_z_importance_over_200: 10
   m_z_start: 29
   m_z_end: 500
   dot_product_threshold: 0.8
