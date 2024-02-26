@@ -39,6 +39,8 @@ config.yaml options:
 * m_z_index - plot only specific m/z index if -1 then the sum is plotted
 * font_size_chromatogram
 * font_thickness_chromatogram
+* squalene_t1 - expected position of Squalene (t1) [s]
+* squalene_t2 - expected position of Squalene (t2) [s]
 * calibration compounds - compounds used to find the shift
 
 compounds_system1/2/3.yaml:
