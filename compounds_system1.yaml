@@ -282,7 +282,7 @@ Methoxyacetic acid, tetradecyl ester:
   box_t1: 1
   box_t2: 1
 
-5,10-Diethoxy-2,3,7,8-tetrahydro-1H,6H-dipyrrolo[1,2-a:1',2'-d]pyrazine:
+5,10-Diethoxy-2,3,7,8-tetrahydro-1H,6H-dipyrrolo[1,2-a_1',2'-d]pyrazine:
   t1: 2138.730627306273
   t2: 1.3206309963099645
   box_t1: 1

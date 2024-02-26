@@ -220,22 +220,22 @@ def from_pixels_times(t1_pixel, t2_pixel):
     return (t1_time, t2_time)
 
 
-def from_times_pixels(compounds: dict):
+def from_times_pixels(compounds: dict, t1_offset, t2_offset):
     '''
     Convert dictionary of compounds with times to pixels
     :param compounds:  dictionary with compounds and their times
     :return: dictionary with compounds and their pixels
     '''
-    global x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, system_number, t1_shift
+    global x_six_seconds, y_six_seconds, x_eight_seconds, y_eight_seconds, y_ten_seconds, x_ten_seconds, system_number, t1_shift, config
     compounds_pixels = {}
     if system_number == 1:
         # MINIMAL TIME WHEN THE MACHINE IS SET FOR 10 SECONDS IN FIRST COLUMN
         min_ten_seconds = x_six_seconds * 6 + x_eight_seconds * 6
         for compound in compounds:
             # T1 READ FROM FILE
-            t1 = compounds[compound]['t1'] + t1_shift
+            t1 = compounds[compound]['t1'] + t1_offset + t1_shift
             # T2 READ FROM FILE
-            t2 = compounds[compound]['t2']
+            t2 = compounds[compound]['t2'] + t2_offset
 
             # CONVERT TO MILLISECONDS
             t2 *= 1000
@@ -263,9 +263,9 @@ def from_times_pixels(compounds: dict):
         min_eight_seconds = x_six_seconds * 6
         for compound in compounds:
             # T1 READ FROM FILE
-            t1 = compounds[compound]['t1'] + t1_shift
+            t1 = compounds[compound]['t1'] + t1_offset + t1_shift
             # T2 READ FROM FILE
-            t2 = compounds[compound]['t2']
+            t2 = compounds[compound]['t2'] + t2_offset
 
             # CONVERT TO MILLISECONDS
             t2 *= 1000
@@ -328,6 +328,8 @@ def find_shift(compounds: dict, spectrogram_image: torch.Tensor):
         avg_shift_x += shift_x
         avg_shift_y += shift_y
         counter += 1
+    if counter == 0:
+        return None, None, None
     avg_shift_x = avg_shift_x / counter
     avg_shift_y = avg_shift_y / counter
     avg_shift_x = int(avg_shift_x.item())
@@ -336,7 +338,8 @@ def find_shift(compounds: dict, spectrogram_image: torch.Tensor):
     return avg_tup, ref_compounds_pixels, shifts_for_compounds
 
 
-def find_position_dot(BOX_SIZE_ADD_X, BOX_SIZE_ADD_Y, spectrogram_image, spectrum, x_compound, y_compound):
+def find_position_dot(BOX_SIZE_ADD_X, BOX_SIZE_ADD_Y, spectrogram_image, spectrum, x_compound, y_compound,
+                      compound_name=None):
     '''
     Find position in the box for compound using dot product
     :param BOX_SIZE_ADD_X: length to add to x coordinate in each direction
@@ -348,9 +351,21 @@ def find_position_dot(BOX_SIZE_ADD_X, BOX_SIZE_ADD_Y, spectrogram_image, spectru
     :return:
     '''
     global config
+    x_left = x_compound - BOX_SIZE_ADD_X
+    x_right = x_compound + 1 + BOX_SIZE_ADD_X
+    y_down = y_compound - BOX_SIZE_ADD_Y
+    y_up = y_compound + BOX_SIZE_ADD_Y + 1
+    if x_left < 0:
+        x_left = 0
+    if x_right > spectrogram_image.shape[2] - 1:
+        x_right = spectrogram_image.shape[2] - 1
+    if y_down < 0:
+        y_down = 0
+    if y_up > spectrogram_image.shape[1] - 1:
+        y_up = spectrogram_image.shape[1] - 1
     cut_spectrogram_image = spectrogram_image[:,
-                            y_compound - BOX_SIZE_ADD_Y:y_compound + 1 + BOX_SIZE_ADD_Y,
-                            x_compound - BOX_SIZE_ADD_X:x_compound + 1 + BOX_SIZE_ADD_X].clone()
+                            y_down:y_up,
+                            x_left:x_right].clone()
     cut_spectrogram_image = cut_spectrogram_image.double()
     spectrum = spectrum.double()
     cut_spectrogram_image = torch.nn.functional.normalize(cut_spectrogram_image, dim=0)
@@ -434,16 +449,17 @@ def find_positions(compounds_pixels: dict, compounds_all: dict, ref_compounds_pi
                             cord[1] + shifts_for_compounds[numbers_compounds[triangle[2]]][1] * cord[2])
                         x_compound += shift_x
                         y_compound += shift_y
-                    if not found:
-                        x_compound += avg_shift[0]
-                        y_compound += avg_shift[1]
+                if not found:
+                    x_compound += avg_shift[0]
+                    y_compound += avg_shift[1]
             else:
+                print('AVG SHIFT')
                 x_compound += avg_shift[0]
                 y_compound += avg_shift[1]
         spectrum = torch.load(f'avg_spectrum/{compound}.pth').to(dev)
         x_compound, y_compound = find_position_dot(compounds_all[compound]['box_t1'], compounds_all[compound]['box_t2'],
                                                    spectrogram_image, spectrum, x_compound,
-                                                   y_compound)
+                                                   y_compound, compound)
         if x_compound == -1 and y_compound == -1:
             continue
         x_compound = int(x_compound)
@@ -958,11 +974,21 @@ def main():
     system_number = config.constants.system_number
     spectrogram_image, ds = load_cdf(cdf_path)
     compounds = load_ref_compounds()
-    compounds_pixels = from_times_pixels(compounds)
+    t1_offset = 0
+    t2_offset = 0
+    if config.constants['squalene_t1'] == -1 and config.constants['squalene_t2'] == -1:
+        t1_offset = 0
+        t2_offset = 0
+    t1_offset = config.constants['squalene_t1'] - compounds['Squalene']['t1']
+    t2_offset = config.constants['squalene_t2'] - compounds['Squalene']['t2']
+    compounds_pixels = from_times_pixels(compounds, t1_offset, t2_offset)
     avg_shift, calibration_compounds_pixels, shifts_for_compounds = find_shift(compounds_pixels, spectrogram_image)
-    if (len(calibration_compounds_pixels.keys()) < len(config.calibration_compounds)):
+    if ((avg_shift == None and calibration_compounds_pixels == None and shifts_for_compounds == None) or len(
+            calibration_compounds_pixels.keys()) < len(config.calibration_compounds)):
         print('Not all calibration compounds were found. Please change the calibration compounds as well as triangles.')
-        print('Calibration compounds found: ', calibration_compounds_pixels.keys())
+        if (calibration_compounds_pixels != None):
+            print('Calibration compounds not found:' + str(
+                set(config.calibration_compounds) - set(calibration_compounds_pixels.keys())))
         exit(1)
     compounds_positions = find_positions(compounds_pixels, compounds, calibration_compounds_pixels, avg_shift,
                                          spectrogram_image, shifts_for_compounds)
