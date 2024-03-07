@@ -4,7 +4,7 @@ constants:
   output_directory: /home/hlavsja3/scent/vscht_scripts
   output_file_name: original
   t1_shift: -500
-  system_number: 1
+  system_number: 2
   box_t1: 5
   box_t2: 50
   m_z_importance_until_100: 2
@@ -14,13 +14,13 @@ constants:
   m_z_end: 500
   dot_product_threshold: 0.2
   m_z_index: -1
-  area_box_t1: 3
-  area_box_t2: 80
+  area_box_t1: 20
+  area_box_t2: 200
   visualize_area: True
   font_size_chromatogram: 0.2
   font_thickness_chromatogram: 1
-  squalene_t1: 2516
-  squalene_t2: 5.275
+  squalene_t1: -1
+  squalene_t2: -1
 
 calibration_compounds:
   - Heptacosane
